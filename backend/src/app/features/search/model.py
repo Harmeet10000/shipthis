@@ -3,7 +3,8 @@ from enum import Enum
 from typing import Annotated
 
 from beanie import Document, Indexed, PydanticObjectId
-from bson import ObjectId
+
+# from bson import ObjectId
 from pydantic import BaseModel, Field
 
 
@@ -31,7 +32,7 @@ class Metadata(BaseModel):
 
 
 class Search(Document):
-    user_id: Annotated[ObjectId, Indexed()]
+    user_id: Annotated[PydanticObjectId, Indexed()]
     origin: Location
     destination: Location
     cargo_weight_kg: float

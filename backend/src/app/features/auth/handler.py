@@ -5,19 +5,20 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.features.auth.dto import LoginRequest, RegisterRequest
 from app.features.auth.service import AuthService
 
-service = AuthService()
 security = HTTPBearer()
 
 
-async def register_handler(data: RegisterRequest):
+async def register_handler(request: Request, data: RegisterRequest):
     try:
+        service = AuthService(request.app.state.redis)
         return await service.register(data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def login_handler(data: LoginRequest):
+async def login_handler(request: Request, data: LoginRequest):
     try:
+        service = AuthService(request.app.state.redis)
         return await service.login(data.email, data.password)
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))

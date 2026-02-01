@@ -4,7 +4,6 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from beanie import init_beanie
 
 from app.config.settings import get_settings
 from app.connections.mongodb import create_mongo_client
@@ -21,17 +20,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     logger.info("Application starting", app_name=app.title, version=app.version)
 
-    # MongoDB: Create client and store in app.state
-    mongo_client = create_mongo_client(settings.MONGODB_URI)
-    app.state.mongo_client = mongo_client
-    app.state.db = mongo_client[settings.MONGODB_DB_NAME]
-    await init_beanie(
-        database=app.state.db,
-        document_models=[
-            User,
-            Search()
-        ],
+    # MongoDB: Initialize using Beanie's recommended approach
+    mongo_client, db = await create_mongo_client(
+        uri=settings.MONGODB_URI,
+        db_name=settings.MONGODB_DB_NAME,
+        document_models=[User, Search],
     )
+    app.state.mongo_client = mongo_client
+    app.state.db = db
     # Redis: Connect and store in app.state
     redis = create_redis_client(settings.REDIS_URL)
     app.state.redis = redis

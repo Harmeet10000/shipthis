@@ -1,5 +1,5 @@
 # app/features/auth/router.py
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 
 from app.features.auth.dependency import get_current_user
 from app.features.auth.dto import (
@@ -19,13 +19,13 @@ router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
 
 @router.post("/register")
-async def register(data: RegisterRequest):
-    return await register_handler(data)
+async def register(request: Request, data: RegisterRequest):
+    return await register_handler(request, data)
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(data: LoginRequest):
-    return await login_handler(data)
+async def login(request: Request, data: LoginRequest):
+    return await login_handler(request, data)
 
 
 

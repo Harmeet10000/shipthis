@@ -1,18 +1,15 @@
 """MongoDB connection and database management."""
 
+from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.read_concern import ReadConcern
-from pymongo.write_concern import WriteConcern
 
 
-def create_mongo_client(uri: str) -> AsyncIOMotorClient:
+async def create_mongo_client(uri: str, db_name: str, document_models: list):
     """
-    Create and return a configured AsyncIOMotorClient.
-    The client is thread-safe and intended to live for the entire process lifetime.
+    Initialize database connection using Beanie's recommended approach.
     """
-    return AsyncIOMotorClient(
-        uri,
-        # Connection pool
+    client = AsyncIOMotorClient(
+        uri,  # Connection pool
         maxPoolSize=10,
         minPoolSize=2,
         maxIdleTimeMS=30_000,
@@ -30,3 +27,13 @@ def create_mongo_client(uri: str) -> AsyncIOMotorClient:
         retryWrites=True,
         tz_aware=True,
     )
+    database = client[db_name]
+
+    await init_beanie(
+        database=database,
+        document_models=document_models,
+    )
+
+    return client, database
+
+

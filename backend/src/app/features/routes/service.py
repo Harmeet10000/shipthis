@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from bson import ObjectId
+from beanie import PydanticObjectId
 
 from app.features.routes.emissions import EmissionCalculator
 from app.features.routes.mapbox import MapboxClient
@@ -15,7 +15,7 @@ class RouteService:
     async def calculate(
         self,
         *,
-        user_id: ObjectId,
+        user_id: PydanticObjectId,
         payload,
     ):
         origin = payload.origin.to_coordinates()
