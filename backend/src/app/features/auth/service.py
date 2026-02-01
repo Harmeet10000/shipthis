@@ -20,11 +20,11 @@ REFRESH_TTL_MIN = 60 * 24 * 7  # 7 days
 
 class AuthService:
     def __init__(self, redis):
-        self.repo = UserRepository()
-        self.refresh_tokens = RefreshTokenRepository(redis)
+        self.user_repo = UserRepository()
+        self.refresh_tokens_repo = RefreshTokenRepository(redis)
 
     async def register(self, data: RegisterRequest):
-        if await self.repo.get_by_email(data.email):
+        if await self.user_repo.get_by_email(data.email):
             raise ValueError("Email already exists")
 
         user = User(
@@ -32,11 +32,11 @@ class AuthService:
             password_hash=hash_password(data.password),
             full_name=data.full_name,
         )
-        await self.repo.create(user)
+        await self.user_repo.create(user)
         return user
 
     async def login(self, email: str, password: str):
-        user = await self.repo.get_by_email(email)
+        user = await self.user_repo.get_by_email(email)
         if not user or not verify_password(password, user.password_hash):
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -57,7 +57,7 @@ class AuthService:
         payload = jwt.decode(refresh, SECRET_KEY, algorithms=[ALGORITHM])
         ttl = payload["exp"] - int(datetime.now(tz=timezone.utc).timestamp())
 
-        await self.refresh_tokens.store(payload["jti"], payload["sub"], ttl)
+        await self.refresh_tokens_repo.store(payload["jti"], payload["sub"], ttl)
 
         return {
             "access_token": access,
@@ -74,13 +74,13 @@ class AuthService:
         if payload["type"] != "refresh":
             raise HTTPException(status_code=401, detail="Invalid token type")
 
-        if not await self.refresh_tokens.exists(payload["jti"]):
+        if not await self.refresh_tokens_repo.exists(payload["jti"]):
             raise HTTPException(status_code=401, detail="Refresh token revoked")
 
         # 🔁 ROTATION: revoke old refresh token
-        await self.refresh_tokens.revoke(payload["jti"])
+        await self.refresh_tokens_repo.revoke(payload["jti"])
 
-        user = await self.repo.get_by_id(payload["sub"])
+        user = await self.user_repo.get_by_id(payload["sub"])
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
 
@@ -94,4 +94,4 @@ class AuthService:
             return  # idempotent logout
 
         if payload.get("jti"):
-            await self.refresh_tokens.revoke(payload["jti"])
+            await self.refresh_tokens_repo.revoke(payload["jti"])

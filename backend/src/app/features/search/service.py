@@ -2,24 +2,14 @@ from math import ceil
 
 from bson import ObjectId
 
-from app.features.search.model import TransportMode
-from app.features.search.repository import SearchRepository
-
 
 class SearchService:
-    def __init__(self, repo: SearchRepository):
+    def __init__(self, repo, redis):
         self.repo = repo
+        self.redis = redis
 
-    async def list_searches(
-        self,
-        *,
-        user_id: ObjectId,
-        page: int,
-        limit: int,
-        sort: str,
-        mode: TransportMode | None,
-    ):
-        results, total = await self.repo.list(
+    async def list_searches(self, *, user_id, page, limit, sort, mode):
+        data, total = await self.repo.list(
             user_id=user_id,
             page=page,
             limit=limit,
@@ -30,7 +20,7 @@ class SearchService:
         total_pages = ceil(total / limit) if total else 0
 
         return {
-            "data": results,
+            "data": data,
             "pagination": {
                 "page": page,
                 "limit": limit,
@@ -40,13 +30,19 @@ class SearchService:
             },
         }
 
-    async def get_search(self, *, search_id: ObjectId, user_id: ObjectId):
-        return await self.repo.get_by_id(search_id=search_id, user_id=user_id)
+    async def get_search(self, *, search_id, user_id):
+        return await self.repo.get(
+            search_id=ObjectId(search_id),
+            user_id=user_id,
+        )
 
-    async def delete_search(self, *, search_id: ObjectId, user_id: ObjectId):
-        return await self.repo.delete(search_id=search_id, user_id=user_id)
+    async def delete_search(self, *, search_id, user_id):
+        return await self.repo.delete(
+            search_id=ObjectId(search_id),
+            user_id=user_id,
+        )
 
-    async def get_stats(self, *, user_id: ObjectId):
+    async def get_stats(self, *, user_id):
         stats = await self.repo.stats(user_id=user_id)
         return {
             "total_searches": stats["total_searches"] if stats else 0,

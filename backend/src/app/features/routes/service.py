@@ -1,68 +1,34 @@
-from datetime import datetime, timezone
-
-from beanie import PydanticObjectId
-
 from app.features.routes.emissions import EmissionCalculator
-from app.features.routes.mapbox import MapboxClient
-from app.features.search.model import Location, Metadata, Search, TransportMode
 
 
 class RouteService:
-    def __init__(self, mapbox: MapboxClient):
+    def __init__(self, mapbox, repo):
         self.mapbox = mapbox
-        self.calculator = EmissionCalculator()
+        self.repo = repo
+        self.emissions = EmissionCalculator()
 
-    async def calculate(
-        self,
-        *,
-        user_id: PydanticObjectId,
-        payload,
-    ):
+    async def calculate(self, *, user_id, payload):
         origin = payload.origin.to_coordinates()
-        destination = payload.destination.to_coordinates()
+        dest = payload.destination.to_coordinates()
 
-        if payload.transport_mode == "land":
-            response = await self.mapbox.get_directions(
-                profile="driving-traffic",
-                coordinates=[origin, destination],
-                alternatives=True,
-            )
-            routes = response["routes"]
-        else:
-            routes = [
-                {
-                    "distance": self._haversine(origin, destination) * 1000,
-                    "duration": 0,
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": [origin, destination],
-                    },
-                }
-            ]
+        response = await self.mapbox.get_directions(
+            profile="driving-traffic",
+            coordinates=[origin, dest],
+            alternatives=True,
+        )
 
-        enriched = []
-        for r in routes:
+        routes = []
+        for r in response["routes"]:
             distance_km = r["distance"] / 1000
-            duration_h = r["duration"] / 3600 if r["duration"] else 0
+            duration_h = r["duration"] / 3600
 
-            if payload.transport_mode == "land":
-                co2 = self.calculator.calculate_land(
-                    distance_km=distance_km,
-                    segments={},
-                    cargo_kg=payload.cargo_weight_kg,
-                )
-            elif payload.transport_mode == "sea":
-                co2 = self.calculator.calculate_sea(
-                    distance_km=distance_km,
-                    cargo_kg=payload.cargo_weight_kg,
-                )
-            else:
-                co2 = self.calculator.calculate_air(
-                    distance_km=distance_km,
-                    cargo_kg=payload.cargo_weight_kg,
-                )
+            co2 = self.emissions.calculate_land(
+                distance_km=distance_km,
+                cargo_kg=payload.cargo_weight_kg,
+                segments={},
+            )
 
-            enriched.append(
+            routes.append(
                 {
                     "distance_km": distance_km,
                     "duration_hours": duration_h,
@@ -71,22 +37,15 @@ class RouteService:
                 }
             )
 
-        shortest = min(enriched, key=lambda r: r["distance_km"])
-        efficient = min(enriched, key=lambda r: r["co2_emissions_kg"])
+        shortest = min(routes, key=lambda r: r["distance_km"])
+        efficient = min(routes, key=lambda r: r["co2_emissions_kg"])
 
-        saved = await Search(
+        await self.repo.save(
             user_id=user_id,
-            origin=Location(name=payload.origin.name, coordinates=origin),
-            destination=Location(
-                name=payload.destination.name, coordinates=destination
-            ),
-            cargo_weight_kg=payload.cargo_weight_kg,
-            transport_mode=TransportMode(payload.transport_mode),
-            shortest_route=shortest,
-            efficient_route=efficient,
-            metadata=Metadata(api_version="v1", calculation_method="mapbox+heuristics"),
-            created_at=datetime.now(timezone.utc),
-        ).insert()
+            payload=payload,
+            shortest=shortest,
+            efficient=efficient,
+        )
 
         savings = shortest["co2_emissions_kg"] - efficient["co2_emissions_kg"]
         percent = (savings / shortest["co2_emissions_kg"]) * 100
@@ -94,36 +53,9 @@ class RouteService:
         efficient["savings"] = {
             "co2_saved_kg": round(savings, 2),
             "percentage": round(percent, 2),
-            "message": f"This route saves {round(savings, 2)} kg of CO2",
         }
 
         return {
-            "search_id": str(saved.id),
             "shortest_route": shortest,
             "efficient_route": efficient,
-            "comparison": {
-                "distance_difference_km": round(
-                    efficient["distance_km"] - shortest["distance_km"], 2
-                ),
-                "time_difference_minutes": round(
-                    (efficient["duration_hours"] - shortest["duration_hours"]) * 60
-                ),
-                "co2_reduction": f"{round(percent, 2)}%",
-            },
         }
-
-    def _haversine(self, a, b):
-        from math import atan2, cos, radians, sin, sqrt
-
-        lon1, lat1 = a
-        lon2, lat2 = b
-        R = 6371
-
-        dlat = radians(lat2 - lat1)
-        dlon = radians(lon2 - lon1)
-
-        h = (
-            sin(dlat / 2) ** 2
-            + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
-        )
-        return 2 * R * atan2(sqrt(h), sqrt(1 - h))

@@ -1,16 +1,16 @@
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
-
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import ORJSONResponse, Response
 
 from app.config.settings import get_settings
-from app.lifecycle.lifespan import lifespan
-from app.features.health.router import router as health_router
 from app.features.auth.router import router as auth_router
+from app.features.health.router import router as health_router
+from app.features.routes.router import router as route_router
 from app.features.search.router import router as search_router
+from app.lifecycle.lifespan import lifespan
 from app.middleware.global_exception_handler import global_exception_handler
 from app.middleware.server_middleware import (
     MetricsMiddleware,
@@ -66,10 +66,10 @@ def create_app() -> FastAPI:
     app.add_middleware(GZipMiddleware, minimum_size=15000, compresslevel=6)
 
     # 4. Timeout (Prevent hanging requests)
-    app.add_middleware(TimeoutMiddleware, timeout_seconds=30)
+    app.add_middleware(TimeoutMiddleware, timeout_seconds=30) # pyright: ignore[reportArgumentType]
 
     # 5. Metrics collection (Monitor all requests)
-    app.add_middleware(MetricsMiddleware, project_name="langchain-fastapi")
+    app.add_middleware(MetricsMiddleware, project_name="langchain-fastapi") # pyright: ignore[reportArgumentType]
 
     # ============================================================================
     # CUSTOM MIDDLEWARES (Using decorator style for better performance)
@@ -113,6 +113,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router)
     app.include_router(search_router)
+    app.include_router(route_router)
 
     # 404 handler (Catch-all route)
     @app.api_route(

@@ -1,12 +1,12 @@
-from typing import Any
 
-from beanie import SortDirection
 from bson import ObjectId
-
-from app.features.search.model import Search, TransportMode
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 
 class SearchRepository:
+    def __init__(self, db: AsyncIOMotorDatabase):
+        self.collection = db.searches
+
     async def list(
         self,
         *,
@@ -14,42 +14,36 @@ class SearchRepository:
         page: int,
         limit: int,
         sort: str,
-        mode: TransportMode | None,
+        mode: str | None,
     ):
-        filter_query: dict[str, Any] = {"user_id": user_id}
+        filter_q: dict = {"user_id": user_id}
         if mode:
-            filter_query["transport_mode"] = mode.value
+            filter_q["transport_mode"] = mode
 
-        total = await Search.find(filter_query).count()
+        total = await self.collection.count_documents(filter_q)
         skip = (page - 1) * limit
 
         sort_field = sort.lstrip("-")
-        direction = (
-            SortDirection.DESCENDING
-            if sort.startswith("-")
-            else SortDirection.ASCENDING
-        )
+        direction = -1 if sort.startswith("-") else 1
 
-        results = (
-            await Search.find(filter_query)
-            .sort([(sort_field, direction)])
+        cursor = (
+            self.collection.find(filter_q)
+            .sort(sort_field, direction)
             .skip(skip)
             .limit(limit)
-            .to_list()
         )
 
-        return results, total
+        data = await cursor.to_list(length=limit)
+        return data, total
 
-    async def get_by_id(self, *, search_id: ObjectId, user_id: ObjectId):
-        return await Search.find_one({"_id": search_id, "user_id": user_id})
+    async def get(self, *, search_id: ObjectId, user_id: ObjectId):
+        return await self.collection.find_one({"_id": search_id, "user_id": user_id})
 
-    async def delete(self, *, search_id: ObjectId, user_id: ObjectId) -> bool:
-        result = await Search.find_one({"_id": search_id, "user_id": user_id})
-        if not result:
-            return False
-
-        await result.delete()
-        return True
+    async def delete(self, *, search_id: ObjectId, user_id: ObjectId):
+        result = await self.collection.delete_one(
+            {"_id": search_id, "user_id": user_id}
+        )
+        return result.deleted_count == 1
 
     async def stats(self, *, user_id: ObjectId):
         pipeline = [
@@ -71,5 +65,5 @@ class SearchRepository:
             },
         ]
 
-        result = await Search.aggregate(pipeline).to_list()
+        result = await self.collection.aggregate(pipeline).to_list(1)
         return result[0] if result else None

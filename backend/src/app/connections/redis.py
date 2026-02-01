@@ -1,7 +1,8 @@
 # app/db/redis_connect.py
+from fastapi import Request
 from redis.asyncio import Redis
-from redis.retry import Retry
 from redis.backoff import ExponentialBackoff
+from redis.retry import Retry
 
 
 def create_redis_client(url: str) -> Redis:
@@ -45,3 +46,6 @@ def create_redis_client(url: str) -> Redis:
         # Health check
         health_check_interval=30,
     )
+
+def get_redis(request: Request) -> Redis:
+    return request.app.state.redis
