@@ -27,6 +27,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+.kiro/
 lib/
 lib64/
 parts/
