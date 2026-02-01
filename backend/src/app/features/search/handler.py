@@ -1,9 +1,8 @@
 from bson import ObjectId
 from fastapi import HTTPException, status
-from typing import Optional
 
-from app.features.search.service import SearchService
 from app.features.search.model import TransportMode
+from app.features.search.service import SearchService
 
 
 class SearchHandler:
@@ -17,7 +16,7 @@ class SearchHandler:
         page: int,
         limit: int,
         sort: str,
-        mode: Optional[TransportMode],
+        mode: TransportMode | None,
     ):
         return await self.service.list_searches(
             user_id=user_id,

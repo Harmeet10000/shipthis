@@ -1,8 +1,9 @@
 # app/features/auth/handler.py
 from fastapi import Depends, HTTPException, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from app.features.auth.dto import LoginRequest, RegisterRequest
 from app.features.auth.service import AuthService
-from app.features.auth.dto import RegisterRequest, LoginRequest
 
 service = AuthService()
 security = HTTPBearer()
@@ -20,6 +21,7 @@ async def login_handler(data: LoginRequest):
         return await service.login(data.email, data.password)
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
+
 
 async def refresh_handler(
     request: Request,

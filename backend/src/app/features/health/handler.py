@@ -41,7 +41,7 @@ async def health_check(request: Request) -> Any:
     """
     # Get MongoDB client from app.state
     mongo_client = getattr(request.app.state, "mongo_client", None)
-    
+
     # Get Redis client
     redis_client = None
     try:
@@ -71,7 +71,7 @@ async def health_check(request: Request) -> Any:
     # Determine overall health status
     all_checks = [database_check, redis_check, memory_check, disk_check]
     overall_status = "healthy"
-    
+
     if any(check.get("status") == "unhealthy" for check in all_checks):
         overall_status = "unhealthy"
     elif any(check.get("status") == "warning" for check in all_checks):

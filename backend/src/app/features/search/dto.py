@@ -1,6 +1,6 @@
-from typing import List
-from pydantic import BaseModel
 from datetime import datetime
+
+from pydantic import BaseModel
 
 
 class Pagination(BaseModel):
@@ -23,7 +23,7 @@ class SearchOut(BaseModel):
 
 
 class SearchListResponse(BaseModel):
-    data: List[SearchOut]
+    data: list[SearchOut]
     pagination: Pagination
 
 

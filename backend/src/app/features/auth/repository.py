@@ -1,5 +1,6 @@
-from app.features.auth.model import User
 from redis.asyncio import Redis
+
+from app.features.auth.model import User
 
 
 class UserRepository:

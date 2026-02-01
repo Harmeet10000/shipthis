@@ -1,5 +1,6 @@
-from math import ceil
-from typing import Optional
+from typing import Any
+
+from beanie import SortDirection
 from bson import ObjectId
 
 from app.features.search.model import Search, TransportMode
@@ -13,17 +14,21 @@ class SearchRepository:
         page: int,
         limit: int,
         sort: str,
-        mode: Optional[TransportMode],
+        mode: TransportMode | None,
     ):
-        filter_query = {"user_id": user_id}
+        filter_query: dict[str, Any] = {"user_id": user_id}
         if mode:
-            filter_query["transport_mode"] = mode
+            filter_query["transport_mode"] = mode.value
 
         total = await Search.find(filter_query).count()
         skip = (page - 1) * limit
 
         sort_field = sort.lstrip("-")
-        direction = -1 if sort.startswith("-") else 1
+        direction = (
+            SortDirection.DESCENDING
+            if sort.startswith("-")
+            else SortDirection.ASCENDING
+        )
 
         results = (
             await Search.find(filter_query)

@@ -1,10 +1,10 @@
 # app/features/auth/dependencies.py
 from fastapi import Depends, HTTPException, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt, JWTError
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 
 from app.features.auth.repository import UserRepository
-from app.features.auth.security import SECRET_KEY, ALGORITHM
+from app.features.auth.security import ALGORITHM, SECRET_KEY
 
 security = HTTPBearer()
 

@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends
+
+from app.config.settings import get_settings
+from app.features.auth.dependency import get_current_user
 from app.features.routes.dto import (
     RouteCalculateRequest,
     RouteCalculateResponse,
 )
 from app.features.routes.handler import RouteHandler
-from app.features.routes.service import RouteService
 from app.features.routes.mapbox import MapboxClient
-from app.features.auth.dependency import get_current_user
-from app.config.settings import get_settings
-
+from app.features.routes.service import RouteService
 
 router = APIRouter(prefix="/api/v1/routes", tags=["Routes"])
 

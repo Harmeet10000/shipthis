@@ -1,6 +1,5 @@
-from pathlib import Path
-
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -33,7 +32,6 @@ class Settings(BaseSettings):
     MONGODB_URI: str = Field(default="mongodb://localhost:27017")
     MONGODB_DB_NAME: str = Field(default="shipthis_db")
 
-
     # --- Redis Cache ---
     REDIS_URL: str = Field(default="redis://localhost:6379")
     REDIS_HOST: str = Field(default="localhost")
@@ -43,6 +41,8 @@ class Settings(BaseSettings):
     REDIS_DB: int = Field(default=0)
     CACHE_TTL: int = Field(default=3600)
 
+    # --- External API Keys ---
+    MAPBOX_TOKEN: str = Field(default="your_mapbox_token_here")
 
     # --- Logging Configuration ---
     LOG_LEVEL: str = Field(default="INFO")

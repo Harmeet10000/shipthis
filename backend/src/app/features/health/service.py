@@ -41,7 +41,7 @@ def get_application_health() -> dict[str, Any]:
             "vms": f"{memory_info.vms / 1024 / 1024:.2f} MB",
         },
         "pid": os.getpid(),
-        "pythonVersion": f"{os.sys.version.split()[0]}",
+        # "pythonVersion": f"{os.sys.version.split()[0]}",
     }
 
 

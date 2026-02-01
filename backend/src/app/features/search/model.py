@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
-from typing import List, Optional
+from typing import Annotated
 
-from beanie import Document, Indexed
-from pydantic import BaseModel, Field
+from beanie import Document, Indexed, PydanticObjectId
 from bson import ObjectId
+from pydantic import BaseModel, Field
 
 
 class TransportMode(str, Enum):
@@ -15,7 +15,7 @@ class TransportMode(str, Enum):
 
 class Location(BaseModel):
     name: str
-    coordinates: List[float]  # [longitude, latitude]
+    coordinates: list[float]  # [longitude, latitude]
 
 
 class RouteInfo(BaseModel):
@@ -31,7 +31,7 @@ class Metadata(BaseModel):
 
 
 class Search(Document):
-    user_id: Indexed(ObjectId)
+    user_id: Annotated[ObjectId, Indexed()]
     origin: Location
     destination: Location
     cargo_weight_kg: float
@@ -39,7 +39,9 @@ class Search(Document):
     shortest_route: RouteInfo
     efficient_route: RouteInfo
     metadata: Metadata
-    created_at: Indexed(datetime) = Field(default_factory=datetime.utcnow)
+    created_at: Annotated[datetime, Indexed()] = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
 
     class Settings:
         name = "searches"

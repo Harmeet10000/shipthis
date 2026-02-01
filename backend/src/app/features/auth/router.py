@@ -1,9 +1,19 @@
 # app/features/auth/router.py
 from fastapi import APIRouter, Depends
 
-from app.features.auth.handler import register_handler, login_handler, refresh_handler, logout_handler
-from app.features.auth.dto import LogoutResponse, RegisterRequest, LoginRequest, TokenResponse
 from app.features.auth.dependency import get_current_user
+from app.features.auth.dto import (
+    LoginRequest,
+    LogoutResponse,
+    RegisterRequest,
+    TokenResponse,
+)
+from app.features.auth.handler import (
+    login_handler,
+    logout_handler,
+    refresh_handler,
+    register_handler,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Auth"])
 
@@ -24,7 +34,7 @@ async def refresh(tokens=Depends(refresh_handler)):
     return tokens
 
 
-@router.post("/logout", response_model=LogoutResponse())
+@router.post("/logout", response_model=LogoutResponse)
 async def logout(result=Depends(logout_handler)):
     return result
 

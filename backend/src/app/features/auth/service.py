@@ -1,17 +1,18 @@
-from jose import jwt, JWTError
-from fastapi import HTTPException
+from datetime import datetime, timezone
 
-from app.features.auth.repository import UserRepository, RefreshTokenRepository
+from fastapi import HTTPException
+from jose import JWTError, jwt
+
 from app.features.auth.dto import RegisterRequest
 from app.features.auth.model import User
+from app.features.auth.repository import RefreshTokenRepository, UserRepository
 from app.features.auth.security import (
+    ALGORITHM,
+    SECRET_KEY,
     create_token,
     hash_password,
     verify_password,
-    SECRET_KEY,
-    ALGORITHM,
 )
-
 
 ACCESS_TTL_MIN = 15
 REFRESH_TTL_MIN = 60 * 24 * 7  # 7 days
@@ -21,7 +22,6 @@ class AuthService:
     def __init__(self, redis):
         self.repo = UserRepository()
         self.refresh_tokens = RefreshTokenRepository(redis)
-
 
     async def register(self, data: RegisterRequest):
         if await self.repo.get_by_email(data.email):

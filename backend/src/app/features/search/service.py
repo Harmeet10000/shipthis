@@ -1,9 +1,9 @@
 from math import ceil
-from bson import ObjectId
-from typing import Optional
 
-from app.features.search.repository import SearchRepository
+from bson import ObjectId
+
 from app.features.search.model import TransportMode
+from app.features.search.repository import SearchRepository
 
 
 class SearchService:
@@ -17,7 +17,7 @@ class SearchService:
         page: int,
         limit: int,
         sort: str,
-        mode: Optional[TransportMode],
+        mode: TransportMode | None,
     ):
         results, total = await self.repo.list(
             user_id=user_id,

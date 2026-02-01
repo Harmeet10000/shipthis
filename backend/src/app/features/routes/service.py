@@ -1,10 +1,10 @@
-from math import ceil
-from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
-from app.features.routes.mapbox import MapboxClient
+from bson import ObjectId
+
 from app.features.routes.emissions import EmissionCalculator
-from app.features.search.model import Search, TransportMode
+from app.features.routes.mapbox import MapboxClient
+from app.features.search.model import Location, Metadata, Search, TransportMode
 
 
 class RouteService:
@@ -76,23 +76,16 @@ class RouteService:
 
         saved = await Search(
             user_id=user_id,
-            origin={
-                "name": payload.origin.name,
-                "coordinates": origin,
-            },
-            destination={
-                "name": payload.destination.name,
-                "coordinates": destination,
-            },
+            origin=Location(name=payload.origin.name, coordinates=origin),
+            destination=Location(
+                name=payload.destination.name, coordinates=destination
+            ),
             cargo_weight_kg=payload.cargo_weight_kg,
             transport_mode=TransportMode(payload.transport_mode),
             shortest_route=shortest,
             efficient_route=efficient,
-            metadata={
-                "api_version": "v1",
-                "calculation_method": "mapbox+heuristics",
-            },
-            created_at=datetime.utcnow(),
+            metadata=Metadata(api_version="v1", calculation_method="mapbox+heuristics"),
+            created_at=datetime.now(timezone.utc),
         ).insert()
 
         savings = shortest["co2_emissions_kg"] - efficient["co2_emissions_kg"]
@@ -120,7 +113,7 @@ class RouteService:
         }
 
     def _haversine(self, a, b):
-        from math import radians, sin, cos, sqrt, atan2
+        from math import atan2, cos, radians, sin, sqrt
 
         lon1, lat1 = a
         lon2, lat2 = b

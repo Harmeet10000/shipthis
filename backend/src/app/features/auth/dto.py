@@ -23,5 +23,6 @@ class UserResponse(BaseModel):
     email: EmailStr
     full_name: str
 
+
 class LogoutResponse(BaseModel):
     detail: str

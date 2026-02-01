@@ -1,8 +1,9 @@
 # app/features/auth/security.py
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
+
 from jose import jwt
 from passlib.context import CryptContext
-from uuid import uuid4
 
 SECRET_KEY = "super-secret"
 ALGORITHM = "HS256"
@@ -17,6 +18,7 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hash: str) -> bool:
     return pwd_context.verify(password, hash)
 
+
 def create_token(
     *,
     user_id: str,
@@ -24,7 +26,7 @@ def create_token(
     token_type: str,
     expires_minutes: int,
 ):
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
         "email": email,

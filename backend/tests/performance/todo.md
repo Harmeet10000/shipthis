@@ -49,6 +49,7 @@ async def connect_db():
 36. use APIException 
 37. figure out the best way to initialise beanie and related models
 38. use .env for JWT secrets and delete passward_hash from user object
+39. do a ruff of project(lint, imports, more) during code push
 31. Opening and closing a network client for every single request is expensive. Using async with ensures the connection is cleaned up properly. In a "Hybrid" reality, you aren't just passing a raw database client around. You use the **Lifespan** to manage the "Heavy" resource (the connection pool) and **Dependencies** to manage the "Scoped" resource (the specific session or transaction for one request).
 This ensures you don't leak connections while keeping your Service and Repository layers clean and testable.
 ---

@@ -1,5 +1,6 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
-from typing import Dict, List, Literal
 
 
 class PointIn(BaseModel):
@@ -20,22 +21,22 @@ class RouteCalculateRequest(BaseModel):
 
 class RouteGeometry(BaseModel):
     type: str
-    coordinates: List[List[float]]
+    coordinates: list[list[float]]
 
 
 class RouteOut(BaseModel):
     distance_km: float
     duration_hours: float
     co2_emissions_kg: float
-    geometry: Dict
+    geometry: dict
 
 
 class EfficientRouteOut(RouteOut):
-    savings: Dict
+    savings: dict
 
 
 class RouteCalculateResponse(BaseModel):
     search_id: str
     shortest_route: RouteOut
     efficient_route: EfficientRouteOut
-    comparison: Dict
+    comparison: dict

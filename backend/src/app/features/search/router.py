@@ -1,16 +1,14 @@
 from fastapi import APIRouter, Depends, Query, status
-from typing import Optional
 
-from app.features.search.handler import SearchHandler
-from app.features.search.repository import SearchRepository
-from app.features.search.service import SearchService
-from app.features.search.model import TransportMode
+from app.features.auth.dependency import get_current_user
 from app.features.search.dto import (
     SearchListResponse,
     SearchStatsResponse,
 )
-from app.features.auth.dependency import get_current_user
-
+from app.features.search.handler import SearchHandler
+from app.features.search.model import TransportMode
+from app.features.search.repository import SearchRepository
+from app.features.search.service import SearchService
 
 router = APIRouter(prefix="/api/v1/searches", tags=["Searches"])
 
@@ -25,7 +23,7 @@ async def list_searches(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     sort: str = Query("-created_at"),
-    mode: Optional[TransportMode] = Query(None),
+    mode: TransportMode | None = Query(None),
     current_user=Depends(get_current_user),
     handler: SearchHandler = Depends(get_handler),
 ):
