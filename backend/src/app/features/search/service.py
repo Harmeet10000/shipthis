@@ -1,0 +1,55 @@
+from math import ceil
+from bson import ObjectId
+from typing import Optional
+
+from app.features.search.repository import SearchRepository
+from app.features.search.model import TransportMode
+
+
+class SearchService:
+    def __init__(self, repo: SearchRepository):
+        self.repo = repo
+
+    async def list_searches(
+        self,
+        *,
+        user_id: ObjectId,
+        page: int,
+        limit: int,
+        sort: str,
+        mode: Optional[TransportMode],
+    ):
+        results, total = await self.repo.list(
+            user_id=user_id,
+            page=page,
+            limit=limit,
+            sort=sort,
+            mode=mode,
+        )
+
+        total_pages = ceil(total / limit) if total else 0
+
+        return {
+            "data": results,
+            "pagination": {
+                "page": page,
+                "limit": limit,
+                "total": total,
+                "total_pages": total_pages,
+                "has_next": page < total_pages,
+            },
+        }
+
+    async def get_search(self, *, search_id: ObjectId, user_id: ObjectId):
+        return await self.repo.get_by_id(search_id=search_id, user_id=user_id)
+
+    async def delete_search(self, *, search_id: ObjectId, user_id: ObjectId):
+        return await self.repo.delete(search_id=search_id, user_id=user_id)
+
+    async def get_stats(self, *, user_id: ObjectId):
+        stats = await self.repo.stats(user_id=user_id)
+        return {
+            "total_searches": stats["total_searches"] if stats else 0,
+            "total_co2_saved": stats["total_co2_saved"] if stats else 0.0,
+            "avg_cargo_weight": stats["avg_cargo_weight"] if stats else 0.0,
+        }

@@ -1,0 +1,90 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro # Production config
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - langchain-network
+    restart: unless-stopped
+    depends_on:
+      - ai-service-1
+      - ai-service-2
+
+  ai-service-1:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+    container_name: ai-service-1
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./.venv:/app/.venv
+    environment:
+      - ENVIRONMENT=development
+    env_file:
+      - .env.development
+    networks:
+      - langchain-network
+    restart: unless-stopped
+
+  ai-service-2:
+    build:
+      context: .
+      dockerfile: docker/dev.Dockerfile
+    container_name: ai-service-2
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./.venv:/app/.venv
+    environment:
+      - ENVIRONMENT=development
+    env_file:
+      - .env.development
+    networks:
+      - langchain-network
+    restart: unless-stopped
+
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: langchain-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   command: redis-server --appendonly yes
+  #   networks:
+  #     - langchain-network
+  #   restart: unless-stopped
+
+  # mongodb:
+  #   image: mongo:7.0
+  #   container_name: langchain-mongodb
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     - MONGO_INITDB_DATABASE=langchain_db
+  #   volumes:
+  #     - mongodb-data:/data/db
+  #     - mongodb-config:/data/configdb
+  #   networks:
+  #     - langchain-network
+  #   restart: unless-stopped
+
+networks:
+  langchain-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  caddy-data:
+  caddy-config:
