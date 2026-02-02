@@ -36,6 +36,7 @@ export function useTokenRefresh() {
       });
     },
     onError: () => {
+      console.error("Token refresh failed");
       // Clear auth and redirect to login
       clearAuth();
       tokenManager.stopProactiveRefresh();

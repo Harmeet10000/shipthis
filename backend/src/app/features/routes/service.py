@@ -1,4 +1,5 @@
 from app.features.routes.emissions import EmissionCalculator
+from app.utils.logger import logger
 
 
 class RouteService:
@@ -16,6 +17,7 @@ class RouteService:
             coordinates=[origin, dest],
             alternatives=True,
         )
+        # logger.info("response",response=response)
 
         routes = []
         for r in response["routes"]:

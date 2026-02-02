@@ -1,0 +1,1 @@
+export { SearchHistoryList } from "./SearchHistoryList";

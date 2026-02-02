@@ -32,7 +32,12 @@ def console_format(record: dict[str, Any]) -> str:
     extra_data = {k: v for k, v in record["extra"].items() if not k.startswith("_")}
 
     if extra_data:
-        meta_parts = [f"<cyan>{k}</>={v!r}" for k, v in extra_data.items()]
+        # Use double curly braces to escape format string interpretation
+        meta_parts = []
+        for k, v in extra_data.items():
+            # Escape curly braces in the repr to prevent format string issues
+            v_repr = repr(v).replace("{", "{{").replace("}", "}}")
+            meta_parts.append(f"<cyan>{k}</>={v_repr}")
         meta_str = " ".join(meta_parts)
         fmt += f" <dim>|</dim> {meta_str}"
 

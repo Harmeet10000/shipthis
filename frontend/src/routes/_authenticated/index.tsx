@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/")({
   component: HomePage,
@@ -36,9 +37,17 @@ function HomePage() {
               )}
             </div>
           )}
-          <Button onClick={logout} variant="outline">
-            Log out
-          </Button>
+          <div className="flex gap-2">
+            <Link to="/search">
+              <Button variant="default">
+                <MapPin className="mr-2 h-4 w-4" />
+                Route Search
+              </Button>
+            </Link>
+            <Button onClick={logout} variant="outline">
+              Log out
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

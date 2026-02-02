@@ -22,28 +22,36 @@ export function useAuthInit() {
 
         // Check if access token is expired
         if (isTokenExpired(accessToken)) {
-          // Try to refresh
-          try {
-            const newTokens = await authApi.refresh(refreshToken);
-            const tokenExpiry =
-              calculateTTL(newTokens.access_token) + Date.now();
-            setTokens(newTokens, tokenExpiry);
+          // Try to refresh only if we have a valid refresh token
+          if (!isTokenExpired(refreshToken)) {
+            try {
+              const newTokens = await authApi.refresh(refreshToken);
+              const tokenExpiry =
+                calculateTTL(newTokens.access_token) + Date.now();
+              setTokens(newTokens, tokenExpiry);
 
-            // Start proactive refresh
-            tokenManager.startProactiveRefresh(
-              newTokens.access_token,
-              async () => {
-                try {
-                  const tokens = await authApi.refresh(newTokens.refresh_token);
-                  const expiry = calculateTTL(tokens.access_token) + Date.now();
-                  useAuthStore.getState().setTokens(tokens, expiry);
-                } catch (error) {
-                  useAuthStore.getState().clearAuth();
-                }
-              },
-            );
-          } catch (error) {
-            // Refresh failed, clear auth
+              // Start proactive refresh
+              tokenManager.startProactiveRefresh(
+                newTokens.access_token,
+                async () => {
+                  try {
+                    const tokens = await authApi.refresh(
+                      newTokens.refresh_token,
+                    );
+                    const expiry =
+                      calculateTTL(tokens.access_token) + Date.now();
+                    useAuthStore.getState().setTokens(tokens, expiry);
+                  } catch {
+                    useAuthStore.getState().clearAuth();
+                  }
+                },
+              );
+            } catch {
+              // Refresh failed, clear auth silently
+              clearAuth();
+            }
+          } else {
+            // Refresh token is also expired, clear auth
             clearAuth();
           }
         } else {
@@ -53,13 +61,13 @@ export function useAuthInit() {
               const tokens = await authApi.refresh(refreshToken);
               const expiry = calculateTTL(tokens.access_token) + Date.now();
               useAuthStore.getState().setTokens(tokens, expiry);
-            } catch (error) {
+            } catch {
               useAuthStore.getState().clearAuth();
             }
           });
         }
       } catch (error) {
-        console.error("Auth initialization error:", error);
+        // Silent fail - just clear auth
         clearAuth();
       } finally {
         setIsInitialized(true);

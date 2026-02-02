@@ -14,8 +14,10 @@ export const authApi = {
    * Register a new user
    */
   register: async (data: RegisterRequest): Promise<User> => {
-    const response = await apiClient.post<User>("/auth/register", data);
-    console.log(response.data);
+    const response = await apiClient.post<User>("/auth/register", data, {
+      withCredentials: true,
+    });
+    // console.log(response.data);
     return response.data;
   },
 
@@ -23,7 +25,9 @@ export const authApi = {
    * Login with email and password
    */
   login: async (data: LoginRequest): Promise<AuthTokens> => {
-    const response = await apiClient.post<AuthTokens>("/auth/login", data);
+    const response = await apiClient.post<AuthTokens>("/auth/login", data, {
+      withCredentials: true,
+    });
     return response.data;
   },
 
@@ -31,6 +35,7 @@ export const authApi = {
    * Refresh access token using refresh token
    */
   refresh: async (refreshToken: string): Promise<AuthTokens> => {
+    console.log("Refreshing token with:", refreshToken);
     const response = await apiClient.post<AuthTokens>(
       "/auth/refresh",
       {},
@@ -38,8 +43,10 @@ export const authApi = {
         headers: {
           Authorization: `Bearer ${refreshToken}`,
         },
+        withCredentials: true,
       },
     );
+    console.log(response.data);
     return response.data;
   },
 
@@ -47,6 +54,6 @@ export const authApi = {
    * Logout user
    */
   logout: async (): Promise<void> => {
-    await apiClient.post("/auth/logout");
+    await apiClient.post("/auth/logout", {}, { withCredentials: true });
   },
 };

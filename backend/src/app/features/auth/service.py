@@ -13,8 +13,9 @@ from app.features.auth.security import (
     hash_password,
     verify_password,
 )
+from app.utils.logger import logger
 
-ACCESS_TTL_MIN = 15
+ACCESS_TTL_MIN = 60 * 24 * 7
 REFRESH_TTL_MIN = 60 * 24 * 7  # 7 days
 
 
@@ -24,74 +25,109 @@ class AuthService:
         self.refresh_tokens_repo = RefreshTokenRepository(redis)
 
     async def register(self, data: RegisterRequest):
-        if await self.user_repo.get_by_email(data.email):
-            raise ValueError("Email already exists")
+        try:
+            if await self.user_repo.get_by_email(data.email):
+                raise ValueError("Email already exists")
 
-        user = User(
-            email=data.email,
-            password_hash=hash_password(data.password),
-            full_name=data.full_name,
-        )
-        await self.user_repo.create(user)
-        return user
+            user = User(
+                email=data.email,
+                password_hash=hash_password(data.password),
+                full_name=data.full_name,
+            )
+            await self.user_repo.create(user)
+            logger.info(f"User registered successfully: {data.email}")
+            return user
+        except ValueError as e:
+            logger.warning(f"Registration failed for {data.email}: {str(e)}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during registration for {data.email}: {str(e)}", exc_info=True)
+            raise
 
     async def login(self, email: str, password: str):
-        user = await self.user_repo.get_by_email(email)
-        if not user or not verify_password(password, user.password_hash):
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+        try:
+            user = await self.user_repo.get_by_email(email)
+            if not user or not verify_password(password, user.password_hash):
+                logger.warning(f"Failed login attempt for email: {email}")
+                raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        access = create_token(
-            user_id=str(user.id),
-            email=user.email,
-            token_type="access",
-            expires_minutes=ACCESS_TTL_MIN,
-        )
+            access = create_token(
+                user_id=str(user.id),
+                email=user.email,
+                token_type="access",
+                expires_minutes=ACCESS_TTL_MIN,
+            )
 
-        refresh = create_token(
-            user_id=str(user.id),
-            email=user.email,
-            token_type="refresh",
-            expires_minutes=REFRESH_TTL_MIN,
-        )
+            refresh = create_token(
+                user_id=str(user.id),
+                email=user.email,
+                token_type="refresh",
+                expires_minutes=REFRESH_TTL_MIN,
+            )
 
-        payload = jwt.decode(refresh, SECRET_KEY, algorithms=[ALGORITHM])
-        ttl = payload["exp"] - int(datetime.now(tz=timezone.utc).timestamp())
+            payload = jwt.decode(refresh, SECRET_KEY, algorithms=[ALGORITHM])
+            ttl = payload["exp"] - int(datetime.now(tz=timezone.utc).timestamp())
 
-        await self.refresh_tokens_repo.store(payload["jti"], payload["sub"], ttl)
+            await self.refresh_tokens_repo.store(payload["jti"], payload["sub"], ttl)
 
-        return {
-            "access_token": access,
-            "refresh_token": refresh,
-            "token_type": "bearer",
-        }
+            logger.info(f"User logged in successfully: {email}")
+            return {
+                "access_token": access,
+                "refresh_token": refresh,
+                "token_type": "bearer",
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during login for {email}: {str(e)}", exc_info=True)
+            raise
 
     async def refresh(self, refresh_token: str):
         try:
+            logger.info("Attempting to refresh token")
             payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
+        except JWTError as e:
+            logger.warning(f"Invalid refresh token - JWT decode failed: {str(e)}")
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        except Exception as e:
+            logger.error(f"Unexpected error decoding refresh token: {str(e)}", exc_info=True)
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-        if payload["type"] != "refresh":
-            raise HTTPException(status_code=401, detail="Invalid token type")
+        try:
+            if payload["type"] != "refresh":
+                logger.warning(f"Invalid token type: {payload.get('type')}")
+                raise HTTPException(status_code=401, detail="Invalid token type")
 
-        if not await self.refresh_tokens_repo.exists(payload["jti"]):
-            raise HTTPException(status_code=401, detail="Refresh token revoked")
+            if not await self.refresh_tokens_repo.exists(payload["jti"]):
+                logger.warning(f"Refresh token revoked or not found: {payload['jti']}")
+                raise HTTPException(status_code=401, detail="Refresh token revoked")
 
-        # 🔁 ROTATION: revoke old refresh token
-        await self.refresh_tokens_repo.revoke(payload["jti"])
+            # 🔁 ROTATION: revoke old refresh token
+            await self.refresh_tokens_repo.revoke(payload["jti"])
 
-        user = await self.user_repo.get_by_id(payload["sub"])
-        if not user:
-            raise HTTPException(status_code=401, detail="User not found")
+            user = await self.user_repo.get_by_id(payload["sub"])
+            if not user:
+                logger.warning(f"User not found for token refresh: {payload['sub']}")
+                raise HTTPException(status_code=401, detail="User not found")
 
-        # issue new tokens
-        return await self.login(user.email, user.password_hash)
+            # issue new tokens
+            logger.info(f"Token refreshed successfully for user: {user.email}")
+            return await self.login(user.email, user.password_hash)
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during token refresh: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail="Token refresh failed")
 
     async def logout(self, refresh_token: str):
         try:
             payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
-        except JWTError:
+            if payload.get("jti"):
+                await self.refresh_tokens_repo.revoke(payload["jti"])
+                logger.info(f"User logged out successfully: {payload.get('sub')}")
+        except JWTError as e:
+            logger.warning(f"Logout with invalid token (idempotent): {str(e)}")
             return  # idempotent logout
-
-        if payload.get("jti"):
-            await self.refresh_tokens_repo.revoke(payload["jti"])
+        except Exception as e:
+            logger.error(f"Unexpected error during logout: {str(e)}", exc_info=True)
+            return  # idempotent logout
