@@ -18,7 +18,7 @@ export function useRegister() {
         error.response?.data?.message ||
         "Registration failed. Please try again.";
       toast.error(message);
-      console.error("Registration error:", error);
+      // console.error("Registration error:", error);
     },
   });
 }

@@ -1,9 +1,13 @@
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from redis.asyncio import Redis
 
 from app.features.auth.model import User
 
 
 class UserRepository:
+    def __init__(self, db: AsyncIOMotorDatabase):
+        self.db = db
+
     async def get_by_email(self, email: str) -> User | None:
         return await User.find_one({"email": email})
 

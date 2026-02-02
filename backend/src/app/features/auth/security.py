@@ -5,8 +5,12 @@ from uuid import uuid4
 from jose import jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = "super-secret"
-ALGORITHM = "HS256"
+from app.config.settings import get_settings
+
+settings = get_settings()
+
+SECRET_KEY = settings.JWT_SECRET_KEY
+ALGORITHM = settings.JWT_ALGORITHM
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

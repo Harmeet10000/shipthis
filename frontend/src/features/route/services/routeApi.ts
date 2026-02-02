@@ -5,53 +5,20 @@ import type {
 } from "../types/route.types";
 import { AxiosError } from "axios";
 
-/**
- * Route API service for route calculation requests
- *
- * This service handles communication with the backend route calculation API.
- * It uses the shared axios instance which includes authentication and error handling.
- *
- * Requirements:
- * - 7.1: Uses axios instance from lib/axios.ts
- * - 7.2: Includes authentication tokens via axios interceptor
- * - 7.5: Parses Route_API response format correctly
- */
+
 export const routeApi = {
-  /**
-   * Calculate routes between origin and destination
-   *
-   * Sends a POST request to /api/v1/routes/calculate with route parameters.
-   * The backend returns two route options: shortest and efficient.
-   *
-   * @param data - Route calculation parameters
-   * @returns Promise resolving to route calculation response with both route options
-   * @throws {RouteApiError} When the API request fails
-   *
-   * @example
-   * ```typescript
-   * const routes = await routeApi.calculateRoutes({
-   *   origin: "New York",
-   *   destination: "Boston",
-   *   vehicle_type: "car",
-   *   cargo_weight: 100
-   * });
-   * ```
-   */
+
   calculateRoutes: async (
     data: RouteCalculationRequest,
   ): Promise<RouteCalculationResponse> => {
     try {
-      // Make POST request to route calculation endpoint
-      // The apiClient automatically includes:
-      // - Authentication token in Authorization header (via request interceptor)
-      // - Content-Type: application/json header
-      // - Handles 401 responses with token refresh (via response interceptor)
-      console.log("Sending route calculation request:", data);
+    
+      // console.log("Sending route calculation request:", data);
       const response = await apiClient.post<RouteCalculationResponse>(
         "/routes/calculate",
         data,
       );
-      console.log("Route calculation response:", response.data);
+      // console.log("Route calculation response:", response.data);
       // Return the response data which contains shortest_route and efficient_route
       return response.data;
     } catch (error) {
@@ -76,15 +43,7 @@ export class RouteApiError extends Error {
   }
 }
 
-/**
- * Handle and transform route API errors
- *
- * Converts axios errors and network errors into user-friendly RouteApiError instances.
- * Provides specific error messages based on the error type and status code.
- *
- * @param error - The error from the API request
- * @returns RouteApiError with appropriate message
- */
+
 function handleRouteApiError(error: unknown): RouteApiError {
   // Handle axios errors (API responded with error status)
   if (error instanceof AxiosError) {

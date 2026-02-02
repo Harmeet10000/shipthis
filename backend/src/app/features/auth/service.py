@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException
 from jose import JWTError, jwt
 
+from app.config.settings import get_settings
 from app.features.auth.dto import RegisterRequest
 from app.features.auth.model import User
 from app.features.auth.repository import RefreshTokenRepository, UserRepository
@@ -15,14 +16,13 @@ from app.features.auth.security import (
 )
 from app.utils.logger import logger
 
-ACCESS_TTL_MIN = 60 * 24 * 7
-REFRESH_TTL_MIN = 60 * 24 * 7  # 7 days
+settings = get_settings()
 
 
 class AuthService:
-    def __init__(self, redis):
-        self.user_repo = UserRepository()
-        self.refresh_tokens_repo = RefreshTokenRepository(redis)
+    def __init__(self, user_repo: UserRepository, refresh_token_repo: RefreshTokenRepository):
+        self.user_repo = user_repo
+        self.refresh_token_repo = refresh_token_repo
 
     async def register(self, data: RegisterRequest):
         try:
@@ -55,20 +55,20 @@ class AuthService:
                 user_id=str(user.id),
                 email=user.email,
                 token_type="access",
-                expires_minutes=ACCESS_TTL_MIN,
+                expires_minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
             )
 
             refresh = create_token(
                 user_id=str(user.id),
                 email=user.email,
                 token_type="refresh",
-                expires_minutes=REFRESH_TTL_MIN,
+                expires_minutes=settings.JWT_REFRESH_TOKEN_EXPIRE_MINUTES,
             )
 
             payload = jwt.decode(refresh, SECRET_KEY, algorithms=[ALGORITHM])
             ttl = payload["exp"] - int(datetime.now(tz=timezone.utc).timestamp())
 
-            await self.refresh_tokens_repo.store(payload["jti"], payload["sub"], ttl)
+            await self.refresh_token_repo.store(payload["jti"], payload["sub"], ttl)
 
             logger.info(f"User logged in successfully: {email}")
             return {
@@ -98,12 +98,12 @@ class AuthService:
                 logger.warning(f"Invalid token type: {payload.get('type')}")
                 raise HTTPException(status_code=401, detail="Invalid token type")
 
-            if not await self.refresh_tokens_repo.exists(payload["jti"]):
+            if not await self.refresh_token_repo.exists(payload["jti"]):
                 logger.warning(f"Refresh token revoked or not found: {payload['jti']}")
                 raise HTTPException(status_code=401, detail="Refresh token revoked")
 
             # 🔁 ROTATION: revoke old refresh token
-            await self.refresh_tokens_repo.revoke(payload["jti"])
+            await self.refresh_token_repo.revoke(payload["jti"])
 
             user = await self.user_repo.get_by_id(payload["sub"])
             if not user:
@@ -123,7 +123,7 @@ class AuthService:
         try:
             payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
             if payload.get("jti"):
-                await self.refresh_tokens_repo.revoke(payload["jti"])
+                await self.refresh_token_repo.revoke(payload["jti"])
                 logger.info(f"User logged out successfully: {payload.get('sub')}")
         except JWTError as e:
             logger.warning(f"Logout with invalid token (idempotent): {str(e)}")

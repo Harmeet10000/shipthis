@@ -40,32 +40,7 @@ const ROUTE_STYLES = {
   },
 } as const;
 
-/**
- * MapRenderer Component
- *
- * Renders an interactive Mapbox GL JS map with route visualization capabilities.
- * Handles map initialization, configuration, controls, route layer rendering,
- * bounds adjustment, and cleanup.
- *
- * Features:
- * - Initializes Mapbox map instance with environment token
- * - Configures default center, zoom, and map style
- * - Adds standard map controls (zoom, rotation)
- * - Subscribes to route store for route data and visibility states
- * - Validates GeoJSON geometry before rendering routes
- * - Logs errors for invalid geometry and skips rendering gracefully
- * - Renders shortest route as solid red line
- * - Renders efficient route as dashed green line
- * - Removes old layers before adding new route data
- * - Automatically adjusts map bounds to fit visible routes
- * - Applies 50px padding on all sides with maxZoom of 15
- * - Handles cases with no routes, one route, or multiple routes
- * - Preserves current view when no routes are visible
- * - Handles map initialization errors
- * - Properly cleans up map instance on unmount
- *
- * Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5, 9.4, 10.2, 10.3
- */
+
 export const MapRenderer = () => {
   // Ref to the map container DOM element
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -85,12 +60,7 @@ export const MapRenderer = () => {
     efficientRouteVisible,
   } = useRouteStore();
 
-  /**
-   * Remove a route layer and its source from the map
-   * @param map - Mapbox map instance
-   * @param layerId - ID of the layer to remove
-   * @param sourceId - ID of the source to remove
-   */
+ 
   const removeRouteLayer = (
     map: mapboxgl.Map,
     layerId: string,
@@ -107,18 +77,7 @@ export const MapRenderer = () => {
     }
   };
 
-  /**
-   * Add a route layer to the map with specified styling
-   * Validates GeoJSON geometry before rendering
-   * @param map - Mapbox map instance
-   * @param route - Route data with geometry
-   * @param layerId - ID for the layer
-   * @param sourceId - ID for the source
-   * @param style - Styling configuration for the route
-   * @returns true if layer was added successfully, false otherwise
-   *
-   * Requirements: 9.4, 10.3
-   */
+
   const addRouteLayer = (
     map: mapboxgl.Map,
     route: Route,
@@ -138,15 +97,15 @@ export const MapRenderer = () => {
 
     if (!validationResult.isValid) {
       // Log error for invalid geometry and skip rendering (Requirement 9.4, 10.3)
-      console.error(
-        `Invalid GeoJSON geometry for route layer ${layerId}:`,
-        validationResult.error,
-        {
-          geometry: route.geometry,
-          layerId,
-          sourceId,
-        },
-      );
+      // console.error(
+      //   `Invalid GeoJSON geometry for route layer ${layerId}:`,
+      //   validationResult.error,
+      //   {
+      //     geometry: route.geometry,
+      //     layerId,
+      //     sourceId,
+      //   },
+      // );
       // Gracefully skip rendering without crashing (Requirement 10.3)
       return false;
     }
@@ -187,24 +146,19 @@ export const MapRenderer = () => {
 
       map.addLayer(layerConfig);
 
-      console.log(`Added route layer: ${layerId}`);
+      // console.log(`Added route layer: ${layerId}`);
       return true;
     } catch (error) {
-      console.error(`Failed to add route layer ${layerId}:`, error);
+      // console.error(`Failed to add route layer ${layerId}:`, error);
       return false;
     }
   };
 
-  /**
-   * Fit map bounds to show all visible routes
-   * Calculates bounding box from all visible route coordinates and adjusts viewport
-   * @param map - Mapbox map instance
-   * @param routes - Array of visible routes to fit in view
-   */
+ 
   const fitBoundsToRoutes = (map: mapboxgl.Map, routes: Route[]) => {
     // Handle case when no routes are visible - preserve current view
     if (routes.length === 0) {
-      console.log("No visible routes - preserving current map view");
+      // console.log("No visible routes - preserving current map view");
       return;
     }
 
@@ -231,9 +185,9 @@ export const MapRenderer = () => {
         duration: 1000, // Smooth animation
       });
 
-      console.log(`Fitted bounds to ${routes.length} visible route(s)`);
+      // console.log(`Fitted bounds to ${routes.length} visible route(s)`);
     } catch (error) {
-      console.error("Failed to fit bounds to routes:", error);
+      // console.error("Failed to fit bounds to routes:", error);
     }
   };
 
@@ -281,19 +235,19 @@ export const MapRenderer = () => {
       // Handle map load event
       map.on("load", () => {
         setIsMapLoaded(true);
-        console.log("Map loaded successfully");
+        // console.log("Map loaded successfully");
       });
 
       // Handle map errors
       map.on("error", (e) => {
-        console.error("Map error:", e);
+        // console.error("Map error:", e);
         setMapError("Failed to load map. Please try refreshing the page.");
       });
 
       // Store map instance in ref
       mapRef.current = map;
     } catch (error) {
-      console.error("Failed to initialize map:", error);
+      // console.error("Failed to initialize map:", error);
       setMapError(
         "Failed to initialize map. Please check your configuration and try again.",
       );

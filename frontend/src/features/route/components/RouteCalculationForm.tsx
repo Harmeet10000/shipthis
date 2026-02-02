@@ -35,21 +35,7 @@ const routeCalculationSchema = z.object({
 
 type RouteCalculationFormData = z.infer<typeof routeCalculationSchema>;
 
-/**
- * Route Calculation Form Component
- *
- * Collects user input for route calculation (origin, destination, vehicle type, cargo weight)
- * and submits requests to the backend API. Displays loading states and error messages.
- *
- * Requirements:
- * - 1.1: Provides input fields for origin, destination, and vehicle type
- * - 1.2: Validates that origin and destination are non-empty
- * - 1.3: Sends POST request to Route_API with user-provided parameters
- * - 1.5: Displays error messages from API failures
- * - 10.1: Displays user-friendly error messages
- * - 10.4: Provides loading indicators during API requests
- * - 10.5: Allows user to retry after errors
- */
+
 export function RouteCalculationForm() {
   const {
     register,

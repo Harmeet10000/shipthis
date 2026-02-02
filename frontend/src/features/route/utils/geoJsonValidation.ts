@@ -1,11 +1,3 @@
-/**
- * GeoJSON Validation Utilities
- *
- * Provides validation functions for GeoJSON geometry data used in route visualization.
- * Validates geometry type, coordinates, and coordinate pairs according to GeoJSON spec.
- *
- * Requirements: 9.1, 9.2, 9.3, 9.5
- */
 
 import type {
   Coordinate,
@@ -17,29 +9,14 @@ import type {
 // Validation Functions
 // ============================================================================
 
-/**
- * Validates that the geometry type is "LineString"
- *
- * @param geometryType - The geometry type to validate
- * @returns true if the type is "LineString", false otherwise
- *
- * Requirement 9.1: Validate that the geometry type is "LineString"
- */
+
 export function validateGeometryType(
   geometryType: unknown,
 ): geometryType is "LineString" {
   return geometryType === "LineString";
 }
 
-/**
- * Validates that coordinates array is non-empty and has at least 2 points
- *
- * @param coordinates - The coordinates array to validate
- * @returns true if coordinates is a non-empty array with at least 2 points
- *
- * Requirement 9.2: Validate that coordinates is a non-empty array with minimum 2 points
- * Requirement 9.5: Handle coordinate arrays of any valid length (minimum 2 points)
- */
+
 export function validateCoordinates(
   coordinates: unknown,
 ): coordinates is Coordinate[] {
@@ -56,14 +33,7 @@ export function validateCoordinates(
   return true;
 }
 
-/**
- * Validates that a coordinate pair contains valid longitude and latitude values
- *
- * @param coord - The coordinate pair to validate [longitude, latitude]
- * @returns true if coordinate pair is valid
- *
- * Requirement 9.3: Validate that each coordinate pair contains longitude [-180, 180] and latitude [-90, 90]
- */
+
 export function validateCoordinatePair(coord: unknown): coord is Coordinate {
   // Check if coord is an array
   if (!Array.isArray(coord)) {
@@ -95,14 +65,7 @@ export function validateCoordinatePair(coord: unknown): coord is Coordinate {
   return true;
 }
 
-/**
- * Parses and validates GeoJSON LineString geometry
- *
- * @param geometry - The geometry object to validate
- * @returns Validation result with isValid flag and optional error message
- *
- * Requirements: 9.1, 9.2, 9.3, 9.5
- */
+
 export function parseGeoJSON(geometry: unknown): GeometryValidationResult {
   // Check if geometry is an object
   if (typeof geometry !== "object" || geometry === null) {
@@ -147,12 +110,7 @@ export function parseGeoJSON(geometry: unknown): GeometryValidationResult {
   };
 }
 
-/**
- * Type guard that validates and narrows geometry to LineStringGeometry
- *
- * @param geometry - The geometry object to validate
- * @returns true if geometry is a valid LineStringGeometry
- */
+
 export function isValidLineStringGeometry(
   geometry: unknown,
 ): geometry is LineStringGeometry {

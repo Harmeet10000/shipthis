@@ -9,19 +9,7 @@ import type { PointIn } from "../types/route.types";
  * using the Mapbox Geocoding API.
  */
 
-/**
- * Geocode a place name to get coordinates
- *
- * @param query - Place name to geocode (e.g., "Delhi", "Mumbai")
- * @returns Promise resolving to PointIn with name and coordinates
- * @throws Error if place is not found or API request fails
- *
- * @example
- * ```typescript
- * const location = await geocodePlace("Delhi");
- * // Returns: { name: "Delhi, India", lat: 28.6139, lng: 77.2090 }
- * ```
- */
+
 export async function geocodePlace(query: string): Promise<PointIn> {
   try {
     // Ensure Mapbox token is set
@@ -63,18 +51,7 @@ export async function geocodePlace(query: string): Promise<PointIn> {
   }
 }
 
-/**
- * Geocode multiple places in parallel
- *
- * @param queries - Array of place names to geocode
- * @returns Promise resolving to array of PointIn objects
- * @throws Error if any geocoding request fails
- *
- * @example
- * ```typescript
- * const locations = await geocodePlaces(["Delhi", "Mumbai"]);
- * ```
- */
+
 export async function geocodePlaces(queries: string[]): Promise<PointIn[]> {
   const promises = queries.map((query) => geocodePlace(query));
   return Promise.all(promises);

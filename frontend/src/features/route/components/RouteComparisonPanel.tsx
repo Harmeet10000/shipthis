@@ -1,25 +1,12 @@
 import { useRouteStore } from "../store/routeStore";
 import type { Route } from "../types/route.types";
 
-/**
- * Route Comparison Panel Component
- *
- * Displays a comparison of route metrics for both shortest and efficient routes.
- * Shows distance, duration, and CO₂ emissions for each route, and calculates
- * CO₂ savings between the two options.
- *
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
- */
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
-/**
- * Format distance in kilometers
- * @param km - Distance in kilometers
- * @returns Formatted string like "12.5 km"
- */
+
 function formatDistance(km: number | undefined): string {
   if (km === undefined || km === null || isNaN(km)) {
     return "N/A";
@@ -27,11 +14,7 @@ function formatDistance(km: number | undefined): string {
   return `${km.toFixed(1)} km`;
 }
 
-/**
- * Format duration in hours
- * @param hours - Duration in hours
- * @returns Formatted string like "2.5 hr" or "24 hr 30 min"
- */
+
 function formatDuration(hours: number | undefined): string {
   if (hours === undefined || hours === null || isNaN(hours)) {
     return "N/A";
@@ -49,11 +32,7 @@ function formatDuration(hours: number | undefined): string {
   }
 }
 
-/**
- * Format CO₂ emissions in kilograms
- * @param kg - CO₂ emissions in kilograms
- * @returns Formatted string like "12.3 kg"
- */
+
 function formatCO2(kg: number | undefined): string {
   if (kg === undefined || kg === null || isNaN(kg)) {
     return "N/A";
@@ -61,12 +40,7 @@ function formatCO2(kg: number | undefined): string {
   return `${kg.toFixed(2)} kg`;
 }
 
-/**
- * Calculate CO₂ savings between two routes
- * @param shortestRoute - The shortest route
- * @param efficientRoute - The efficient route
- * @returns Absolute difference in CO₂ emissions (kilograms)
- */
+
 function calculateCO2Savings(
   shortestRoute: Route,
   efficientRoute: Route,
@@ -136,10 +110,9 @@ function RouteMetricsCard({
 export function RouteComparisonPanel() {
   const { shortestRoute, efficientRoute } = useRouteStore();
 
-  // Debug: Log route data to console
-  console.log("RouteComparisonPanel - shortestRoute:", shortestRoute);
-  console.log("RouteComparisonPanel - efficientRoute:", efficientRoute);
-
+  // console.log("RouteComparisonPanel - shortestRoute:", shortestRoute);
+  // console.log("RouteComparisonPanel - efficientRoute:", efficientRoute);
+// 
   // Don't render if no routes are available
   if (!shortestRoute || !efficientRoute) {
     return null;
@@ -157,7 +130,7 @@ export function RouteComparisonPanel() {
     efficientRoute.co2_emissions_kg !== undefined;
 
   if (!hasValidShortestRoute || !hasValidEfficientRoute) {
-    console.error("Invalid route data:", { shortestRoute, efficientRoute });
+    // console.error("Invalid route data:", { shortestRoute, efficientRoute });
     return (
       <div className="w-full rounded-lg border border-red-200 bg-red-50 p-4">
         <p className="text-sm text-red-800">

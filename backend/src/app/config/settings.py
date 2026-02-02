@@ -60,6 +60,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS: int = Field(default=100)
     RATE_LIMIT_PERIOD: int = Field(default=60)
 
+    # --- JWT Authentication ---
+    JWT_SECRET_KEY: str = Field(default="super-secret-change-this-in-production")
+    JWT_ALGORITHM: str = Field(default="HS256")
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=10080)  # 7 days
+    JWT_REFRESH_TOKEN_EXPIRE_MINUTES: int = Field(default=10080)  # 7 days
+
     # --- File Upload ---
     MAX_UPLOAD_SIZE: int = Field(default=10485760)  # 10MB
     ALLOWED_EXTENSIONS: list[str] = Field(

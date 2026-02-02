@@ -81,12 +81,12 @@ export const useRouteStore = create<RouteState>()((set) => ({
 
   // Actions
   setRoutes: (data: RouteCalculationResponse) => {
-    console.log("RouteStore.setRoutes - Received data:", data);
-    console.log("RouteStore.setRoutes - shortest_route:", data.shortest_route);
-    console.log(
-      "RouteStore.setRoutes - efficient_route:",
-      data.efficient_route,
-    );
+    // console.log("RouteStore.setRoutes - Received data:", data);
+    // console.log("RouteStore.setRoutes - shortest_route:", data.shortest_route);
+    // console.log(
+    //   "RouteStore.setRoutes - efficient_route:",
+    //   data.efficient_route,
+    // );
 
     set({
       shortestRoute: data.shortest_route,
