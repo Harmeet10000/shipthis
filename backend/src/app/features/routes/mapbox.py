@@ -16,7 +16,7 @@ class MapboxClient:
         coord_str = ";".join(f"{lon},{lat}" for lon, lat in coordinates)
 
         params = {
-            "alternatives": "true" if alternatives else "false",
+            "alternatives": "false" if alternatives else "false",
             "geometries": "geojson",
             "steps": "true",
             "annotations": "distance,duration,speed,congestion",
