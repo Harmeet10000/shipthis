@@ -52,6 +52,22 @@ git clone https://github.com/Harmeet10000/langchain-fastapi-production.git
 cd langchain-fastapi-production
 ```
 
+### 2. Install uv (if not already installed)
+
+```bash
+# On macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or with pip
+pip install uv
+
+# Verify installation
+uv --version
+```
+
 ### 3. Set up environment variables
 
 ```bash
@@ -59,7 +75,35 @@ touch .env.development
 # Edit .env and add your API keys
 ```
 
-### 4. Using Docker (Recommended for Production)
+### 4. First-Time Setup with uv
+
+```bash
+# Navigate to backend directory
+cd backend
+
+# Create a virtual environment
+uv venv
+
+# Activate the virtual environment
+# On Linux/macOS:
+source .venv/bin/activate
+# On Windows:
+# .venv\Scripts\activate
+
+# Sync all dependencies from pyproject.toml (including dev dependencies)
+uv sync --all-extras
+
+# Or sync only production dependencies
+uv sync
+
+# Or sync with specific extras
+uv sync --extra dev
+
+# Verify installation
+uv pip list
+```
+
+### 5. Using Docker (Recommended for Production)
 
 ```bash
 # Build and start all services
