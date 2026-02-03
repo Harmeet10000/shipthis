@@ -1,5 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-import type { TokenPayload } from "../types/auth.types";
+import type { TokenPayload, User } from "../types/auth.types";
 
 /**
  * Decodes a JWT token and returns its payload
@@ -12,6 +12,26 @@ export function decodeToken(token: string): TokenPayload {
     return jwtDecode<TokenPayload>(token);
   } catch (error) {
     throw new Error("Invalid token format");
+  }
+}
+
+/**
+ * Extracts user information from JWT access token
+ * @param accessToken - The JWT access token string
+ * @returns Partial user object with id and email from token
+ */
+export function extractUserFromToken(accessToken: string): Partial<User> {
+  try {
+    const payload = decodeToken(accessToken);
+    return {
+      _id: payload.sub,
+      email: payload.email,
+      full_name: "", // Will be populated from /me endpoint if needed
+      created_at: new Date(payload.iat * 1000).toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  } catch (error) {
+    throw new Error("Failed to extract user from token");
   }
 }
 

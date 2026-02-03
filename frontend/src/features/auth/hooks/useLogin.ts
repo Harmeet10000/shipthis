@@ -4,9 +4,9 @@ import { toast } from "sonner";
 import { authApi } from "../services/authApi";
 import { useAuthStore } from "../store/authStore";
 import { tokenManager } from "../services/tokenManager";
-import { calculateTTL } from "../utils/tokenUtils";
+import { calculateTTL, extractUserFromToken } from "../utils/tokenUtils";
 import { REDIRECT_URL_KEY } from "../utils/constants";
-import type { LoginRequest } from "../types/auth.types";
+import type { LoginRequest, User } from "../types/auth.types";
 
 export function useLogin() {
   const navigate = useNavigate();
@@ -22,14 +22,16 @@ export function useLogin() {
         // Calculate token expiry
         const tokenExpiry = calculateTTL(tokens.access_token) + Date.now();
 
-        // For now, we'll create a minimal user object from the token
-        // In a real app, you might want to fetch user details from an endpoint
-        const user = {
-          _id: "",
-          email: "",
-          full_name: "",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+        // Extract user information from JWT token
+        const userFromToken = extractUserFromToken(tokens.access_token);
+
+        // Create user object with data from token
+        const user: User = {
+          _id: userFromToken._id || "",
+          email: userFromToken.email || "",
+          full_name: userFromToken.full_name || "",
+          created_at: userFromToken.created_at || new Date().toISOString(),
+          updated_at: userFromToken.updated_at || new Date().toISOString(),
         };
 
         // Update auth store
@@ -45,7 +47,7 @@ export function useLogin() {
               newTokens.access_token,
               () => {},
             );
-          } catch (error) {
+          } catch {
             useAuthStore.getState().clearAuth();
             navigate({ to: "/login" });
           }
@@ -61,15 +63,16 @@ export function useLogin() {
         }
 
         toast.success("Login successful!");
-      } catch (error) {
-        console.error("Login success handler error:", error);
+      } catch {
+        // Token extraction failed
         toast.error("Login failed. Please try again.");
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       setLoading(false);
       const message =
-        error.response?.data?.message || "Login failed. Please try again.";
+        (error as { response?: { data?: { message?: string } } }).response?.data
+          ?.message || "Login failed. Please try again.";
       toast.error(message);
     },
   });

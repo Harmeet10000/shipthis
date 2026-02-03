@@ -2,14 +2,20 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { tokenManager } from "../services/tokenManager";
 import { authApi } from "../services/authApi";
-import { isTokenExpired, calculateTTL } from "../utils/tokenUtils";
+import {
+  isTokenExpired,
+  calculateTTL,
+  extractUserFromToken,
+} from "../utils/tokenUtils";
+import type { User } from "../types/auth.types";
 
 /**
  * Hook to initialize authentication state on app load
  */
 export function useAuthInit() {
   const [isInitialized, setIsInitialized] = useState(false);
-  const { accessToken, refreshToken, clearAuth, setTokens } = useAuthStore();
+  const { accessToken, refreshToken, clearAuth, setTokens, setUser } =
+    useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -28,7 +34,23 @@ export function useAuthInit() {
               const newTokens = await authApi.refresh(refreshToken);
               const tokenExpiry =
                 calculateTTL(newTokens.access_token) + Date.now();
+
+              // Extract and update user from new token
+              const userFromToken = extractUserFromToken(
+                newTokens.access_token,
+              );
+              const user: User = {
+                _id: userFromToken._id || "",
+                email: userFromToken.email || "",
+                full_name: userFromToken.full_name || "",
+                created_at:
+                  userFromToken.created_at || new Date().toISOString(),
+                updated_at:
+                  userFromToken.updated_at || new Date().toISOString(),
+              };
+
               setTokens(newTokens, tokenExpiry);
+              setUser(user);
 
               // Start proactive refresh
               tokenManager.startProactiveRefresh(
@@ -55,7 +77,21 @@ export function useAuthInit() {
             clearAuth();
           }
         } else {
-          // Token is still valid, start proactive refresh
+          // Token is still valid, ensure user is populated from token
+          const currentUser = useAuthStore.getState().user;
+          if (!currentUser || !currentUser._id) {
+            const userFromToken = extractUserFromToken(accessToken);
+            const user: User = {
+              _id: userFromToken._id || "",
+              email: userFromToken.email || "",
+              full_name: userFromToken.full_name || "",
+              created_at: userFromToken.created_at || new Date().toISOString(),
+              updated_at: userFromToken.updated_at || new Date().toISOString(),
+            };
+            setUser(user);
+          }
+
+          // Start proactive refresh
           tokenManager.startProactiveRefresh(accessToken, async () => {
             try {
               const tokens = await authApi.refresh(refreshToken);

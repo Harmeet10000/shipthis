@@ -9,6 +9,7 @@ import { authApi } from "../services/authApi";
 export function useAuth() {
   const navigate = useNavigate();
   const authState = useAuthStore();
+  // console.log("Current auth state:", authState);
 
   const logout = async () => {
     try {

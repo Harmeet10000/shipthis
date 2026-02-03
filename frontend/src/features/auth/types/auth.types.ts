@@ -41,7 +41,10 @@ export interface AuthStore extends AuthState {
 }
 
 export interface TokenPayload {
-  sub: string;
-  exp: number;
+  sub: string; // user_id
+  email: string;
+  type: string; // "access" or "refresh"
+  jti: string;
   iat: number;
+  exp: number;
 }

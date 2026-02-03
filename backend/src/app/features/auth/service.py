@@ -74,6 +74,7 @@ class AuthService:
             return {
                 "access_token": access,
                 "refresh_token": refresh,
+                "user": user,
                 "token_type": "bearer",
             }
         except HTTPException:

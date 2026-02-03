@@ -16,6 +16,7 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       setAuth: (tokens: AuthTokens, user: User, tokenExpiry: number) => {
+        console.log("Setting auth state:", { user, tokens, tokenExpiry });
         set({
           user,
           accessToken: tokens.access_token,

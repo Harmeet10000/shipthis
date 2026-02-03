@@ -28,6 +28,7 @@ export const authApi = {
     const response = await apiClient.post<AuthTokens>("/auth/login", data, {
       withCredentials: true,
     });
+    // console.log("login response",response.data);
     return response.data;
   },
 
