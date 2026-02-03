@@ -16,11 +16,12 @@ interface AppEnv {
 }
 
 const validateEnv = (envMode: TMode, env: AppEnv) => {
-  const requiredVars: (keyof AppEnv)[] = ["PORT", "BACKEND_PROXY", "VITE_ENV"];
-
+  // Skip validation for production build (Vercel doesn't need PORT/BACKEND_PROXY)
   if (envMode === "production") {
-    requiredVars.push("SENTRY_TOKEN");
+    return;
   }
+
+  const requiredVars: (keyof AppEnv)[] = ["PORT", "BACKEND_PROXY", "VITE_ENV"];
 
   for (const key of requiredVars) {
     if (!env[key]) {
@@ -46,7 +47,7 @@ export default defineConfig(({ mode }) => {
 
   validateEnv(envMode, env);
 
-  const port = normalizePort(env.PORT);
+  const port = env.PORT ? normalizePort(env.PORT) : 5173;
 
   const config: ServerOptions = {
     port,
@@ -57,13 +58,15 @@ export default defineConfig(({ mode }) => {
       clientPort: 80, // HMR through nginx
     },
     open: true,
-    proxy: {
-      "/api": {
-        target: env.BACKEND_PROXY,
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
-      },
-    },
+    proxy: env.BACKEND_PROXY
+      ? {
+          "/api": {
+            target: env.BACKEND_PROXY,
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/api/, ""),
+          },
+        }
+      : undefined,
   };
 
   return {

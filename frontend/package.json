@@ -10,7 +10,7 @@
         "format:fix": "prettier --write .",
         "lint:stylelint": "stylelint **/*.css",
         "dev": "vite --mode development",
-        "build": "tsc -b",
+        "build": "tsc -b && vite build",
         "preview": "vite preview --mode production",
         "start": "vite build --mode production",
         "test": "vitest --mode test",
