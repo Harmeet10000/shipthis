@@ -16,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function HomePage() {
   const { user, logout } = useAuth();
-  console.log("user ", user)
+  // console.log("user ", user)
 
   return (
     <div className="container mx-auto p-8">

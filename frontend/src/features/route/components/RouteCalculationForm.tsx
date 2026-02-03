@@ -26,15 +26,14 @@ const routeCalculationSchema = z.object({
   origin: z.string().min(1, "Origin is required"),
   destination: z.string().min(1, "Destination is required"),
   transport_mode: z.enum(["land", "sea", "air"], {
-    errorMap: () => ({ message: "Please select a transport mode" }),
+    message: "Please select a transport mode",
   }),
   cargo_weight_kg: z
-    .number({ invalid_type_error: "Cargo weight must be a number" })
+    .number({ message: "Cargo weight must be a number" })
     .positive("Cargo weight must be greater than 0"),
 });
 
 type RouteCalculationFormData = z.infer<typeof routeCalculationSchema>;
-
 
 export function RouteCalculationForm() {
   const {
@@ -83,11 +82,11 @@ export function RouteCalculationForm() {
 
       // Update store with route data
       setRoutes(response);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Set error state with specific geocoding error messages
       let errorMessage = "Failed to calculate routes. Please try again.";
 
-      if (err.message) {
+      if (err instanceof Error && err.message) {
         if (err.message.includes("Place not found")) {
           errorMessage =
             err.message + ". Please check the location name and try again.";

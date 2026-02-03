@@ -40,7 +40,6 @@ const ROUTE_STYLES = {
   },
 } as const;
 
-
 export const MapRenderer = () => {
   // Ref to the map container DOM element
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -60,7 +59,6 @@ export const MapRenderer = () => {
     efficientRouteVisible,
   } = useRouteStore();
 
- 
   const removeRouteLayer = (
     map: mapboxgl.Map,
     layerId: string,
@@ -76,7 +74,6 @@ export const MapRenderer = () => {
       map.removeSource(sourceId);
     }
   };
-
 
   const addRouteLayer = (
     map: mapboxgl.Map,
@@ -148,13 +145,12 @@ export const MapRenderer = () => {
 
       // console.log(`Added route layer: ${layerId}`);
       return true;
-    } catch (error) {
+    } catch {
       // console.error(`Failed to add route layer ${layerId}:`, error);
       return false;
     }
   };
 
- 
   const fitBoundsToRoutes = (map: mapboxgl.Map, routes: Route[]) => {
     // Handle case when no routes are visible - preserve current view
     if (routes.length === 0) {
@@ -186,7 +182,7 @@ export const MapRenderer = () => {
       });
 
       // console.log(`Fitted bounds to ${routes.length} visible route(s)`);
-    } catch (error) {
+    } catch {
       // console.error("Failed to fit bounds to routes:", error);
     }
   };
@@ -239,14 +235,14 @@ export const MapRenderer = () => {
       });
 
       // Handle map errors
-      map.on("error", (e) => {
+      map.on("error", () => {
         // console.error("Map error:", e);
         setMapError("Failed to load map. Please try refreshing the page.");
       });
 
       // Store map instance in ref
       mapRef.current = map;
-    } catch (error) {
+    } catch {
       // console.error("Failed to initialize map:", error);
       setMapError(
         "Failed to initialize map. Please check your configuration and try again.",

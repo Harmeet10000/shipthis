@@ -5,14 +5,11 @@ import type {
 } from "../types/route.types";
 import { AxiosError } from "axios";
 
-
 export const routeApi = {
-
   calculateRoutes: async (
     data: RouteCalculationRequest,
   ): Promise<RouteCalculationResponse> => {
     try {
-    
       // console.log("Sending route calculation request:", data);
       const response = await apiClient.post<RouteCalculationResponse>(
         "/routes/calculate",
@@ -33,16 +30,16 @@ export const routeApi = {
  * Provides structured error information for better error handling
  */
 export class RouteApiError extends Error {
-  constructor(
-    message: string,
-    public statusCode?: number,
-    public originalError?: unknown,
-  ) {
+  public statusCode?: number;
+  public originalError?: unknown;
+
+  constructor(message: string, statusCode?: number, originalError?: unknown) {
     super(message);
     this.name = "RouteApiError";
+    this.statusCode = statusCode;
+    this.originalError = originalError;
   }
 }
-
 
 function handleRouteApiError(error: unknown): RouteApiError {
   // Handle axios errors (API responded with error status)

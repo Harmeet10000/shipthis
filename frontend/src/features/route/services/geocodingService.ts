@@ -9,7 +9,6 @@ import type { PointIn } from "../types/route.types";
  * using the Mapbox Geocoding API.
  */
 
-
 export async function geocodePlace(query: string): Promise<PointIn> {
   try {
     // Ensure Mapbox token is set
@@ -51,7 +50,6 @@ export async function geocodePlace(query: string): Promise<PointIn> {
   }
 }
 
-
 export async function geocodePlaces(queries: string[]): Promise<PointIn[]> {
   const promises = queries.map((query) => geocodePlace(query));
   return Promise.all(promises);
@@ -61,11 +59,11 @@ export async function geocodePlaces(queries: string[]): Promise<PointIn[]> {
  * Custom error class for geocoding errors
  */
 export class GeocodingError extends Error {
-  constructor(
-    message: string,
-    public query: string,
-  ) {
+  public query: string;
+
+  constructor(message: string, query: string) {
     super(message);
     this.name = "GeocodingError";
+    this.query = query;
   }
 }
