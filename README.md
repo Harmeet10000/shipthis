@@ -75,8 +75,12 @@ A full-stack application for calculating and comparing carbon emissions across d
 3. **Add environment variables** (paste values sent in the mail)
 
    ```env
- # please paste from the values sent in the mail
+
    ```
+
+# please paste from the values sent in the mail
+
+````
 
 4. **Install dependencies** (uv will handle this automatically when running)
 
@@ -84,9 +88,9 @@ A full-stack application for calculating and comparing carbon emissions across d
 
 1. **Navigate to frontend directory**
 
-   ```bash
-   cd frontend
-   ```
+```bash
+cd frontend
+````
 
 2. **Create `.env.development` file**
 
@@ -97,18 +101,21 @@ A full-stack application for calculating and comparing carbon emissions across d
 3. **Add environment variables** (paste values sent in the mail)
 
    ```env
- # please paste from the values sent in the mail
 
    ```
+
+# please paste from the values sent in the mail
+
+````
 
 4. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   pnpm install
-   # or
-   bun install
-   ```
+```bash
+npm install
+# or
+pnpm install
+# or
+bun install
+````
 
 ## 🏃 Running the Application
 
@@ -167,7 +174,6 @@ The frontend will be available at `http://localhost:5173` (or the port shown in 
     └── .env.development         # Frontend environment variables
 ```
 
-
 ## 🤝 Architecture Highlights
 
 - **Dependency Injection**: Services and repositories use constructor-based DI
@@ -178,4 +184,3 @@ The frontend will be available at `http://localhost:5173` (or the port shown in 
 - **Logging**: Structured logging with rotation and compression
 
 ---
-
