@@ -24,7 +24,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> ORJSONRe
         "url": str(request.url),
         "correlationId": correlation_id,
     }
-    
+
     # Include IP only in non-production
     if not is_production and request.client:
         request_info["ip"] = request.client.host
@@ -40,11 +40,11 @@ async def global_exception_handler(request: Request, exc: Exception) -> ORJSONRe
             "message": exc.message,
             "data": exc.data,
         }
-        
+
         # Add trace for 5xx errors in non-production
         if exc.status_code >= 500 and not is_production:
             error_obj["trace"] = traceback.format_exc()
-            
+
         log_level = "error" if exc.status_code >= 500 else "warning"
 
     elif isinstance(exc, RequestValidationError):
@@ -90,11 +90,11 @@ async def global_exception_handler(request: Request, exc: Exception) -> ORJSONRe
             "message": "An unexpected error occurred" if is_production else str(exc),
             "data": None,
         }
-        
+
         # Add trace in non-production
         if not is_production:
             error_obj["trace"] = traceback.format_exc()
-            
+
         log_level = "error"
 
     # Log the error with appropriate level
@@ -110,4 +110,3 @@ async def global_exception_handler(request: Request, exc: Exception) -> ORJSONRe
         status_code=error_obj["statusCode"],
         content=error_obj,
     )
-

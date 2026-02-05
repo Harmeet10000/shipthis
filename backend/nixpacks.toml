@@ -1,8 +1,13 @@
-[providers]
-python = "3.12"
+# Nixpacks configuration for Python FastAPI application
+# Docs: https://nixpacks.com/docs/providers/python
 
-[phases.install]
-cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
+# Use Python 3.12 with DNS resolution packages
+[phases.setup]
+nixPkgs = ["python312"]
+aptPkgs = ["dnsutils", "ca-certificates"]
+
+# The install phase will automatically run: pip install -r requirements.txt
+# No need to override it unless you have special requirements
 
 [start]
-cmd = "uvicorn src.app.main:app --host 0.0.0.0 --port $PORT"
+cmd = "cd src && uvicorn app.main:app --host 0.0.0.0 --port $PORT"

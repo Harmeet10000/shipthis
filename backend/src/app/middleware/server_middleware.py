@@ -59,7 +59,7 @@ def _normalize_path(path: str) -> str:
     # Skip normalization for common paths
     if path in {"/", "/health", "/metrics", "/docs", "/redoc", "/openapi.json"}:
         return path
-    
+
     # Simple normalization: replace UUIDs and numeric IDs
     parts = path.split("/")
     normalized = []
@@ -68,7 +68,7 @@ def _normalize_path(path: str) -> str:
             normalized.append("{id}")
         else:
             normalized.append(part)
-    
+
     return "/".join(normalized)
 
 
@@ -76,12 +76,14 @@ async def correlation_middleware(request: Request, call_next: Callable) -> Respo
     """Add correlation ID to requests for distributed tracing."""
     # Check if correlation ID already exists (from upstream service)
     correlation_id = request.headers.get("X-Correlation-ID") or generate(size=21)
-    
+
     correlation_id_var.set(correlation_id)
     request.state.correlation_id = correlation_id
 
     # Bind correlation_id to logger context for this request
-    with logger.contextualize(correlation_id=correlation_id, path=request.url.path, method=request.method):
+    with logger.contextualize(
+        correlation_id=correlation_id, path=request.url.path, method=request.method
+    ):
         response = await call_next(request)
         response.headers["X-Correlation-ID"] = correlation_id
         return response
@@ -89,7 +91,7 @@ async def correlation_middleware(request: Request, call_next: Callable) -> Respo
 
 class MetricsMiddleware:
     """Pure ASGI middleware for Prometheus metrics."""
-    
+
     def __init__(
         self,
         app: Callable[[dict, Callable, Callable], Awaitable],
@@ -99,50 +101,50 @@ class MetricsMiddleware:
         self.project_name = project_name
         # Set app up status on creation
         app_up.labels(project=project_name).set(1)
-    
+
     async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None:
         """ASGI interface."""
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        
+
         # Skip metrics endpoint to avoid infinite loop
         path = scope["path"]
         if path == "/metrics":
             await self.app(scope, receive, send)
             return
-        
+
         method = scope["method"]
         endpoint = _normalize_path(path)
-        
+
         # Track in-progress requests
         http_requests_in_progress.labels(
             method=method, endpoint=endpoint, project=self.project_name
         ).inc()
-        
+
         start_time = time.perf_counter()
         status_code = 500  # Default to 500 in case of exception
-        
+
         async def send_wrapper(message: dict) -> None:
             """Wrapper to capture status code and add headers."""
             nonlocal status_code
-            
+
             if message["type"] == "http.response.start":
                 status_code = message["status"]
-                
+
                 # Add process time header
                 process_time = time.perf_counter() - start_time
                 headers = list(message.get("headers", []))
                 headers.append((b"x-process-time", f"{process_time:.3f}".encode()))
                 message["headers"] = headers
-            
+
             await send(message)
-        
+
         try:
             await self.app(scope, receive, send_wrapper)
         finally:
             duration = time.perf_counter() - start_time
-            
+
             # Record metrics
             http_requests_total.labels(
                 method=method,
@@ -150,14 +152,14 @@ class MetricsMiddleware:
                 status_code=status_code,
                 project=self.project_name,
             ).inc()
-            
+
             http_request_duration_seconds.labels(
                 method=method,
                 endpoint=endpoint,
                 status_code=status_code,
                 project=self.project_name,
             ).observe(duration)
-            
+
             # Decrement in-progress
             http_requests_in_progress.labels(
                 method=method, endpoint=endpoint, project=self.project_name
@@ -166,7 +168,7 @@ class MetricsMiddleware:
 
 class TimeoutMiddleware:
     """Pure ASGI middleware for request timeouts."""
-    
+
     def __init__(
         self,
         app: Callable[[dict, Callable, Callable], Awaitable],
@@ -174,13 +176,13 @@ class TimeoutMiddleware:
     ):
         self.app = app
         self.timeout_seconds = timeout_seconds
-    
+
     async def __call__(self, scope: dict, receive: Callable, send: Callable) -> None:
         """ASGI interface."""
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        
+
         try:
             await asyncio.wait_for(
                 self.app(scope, receive, send),
@@ -193,15 +195,15 @@ class TimeoutMiddleware:
                 if key == b"x-correlation-id":
                     correlation_id = value.decode()
                     break
-            
+
             path = scope["path"]
             method = scope["method"]
-            
+
             logger.error(
                 f"[{correlation_id}] Request timeout: {method} {path} "
                 f"exceeded {self.timeout_seconds}s"
             )
-            
+
             # Send timeout response
             response = ORJSONResponse(
                 status_code=408,
@@ -212,7 +214,7 @@ class TimeoutMiddleware:
                     "correlationId": correlation_id,
                 },
             )
-            
+
             await response(scope, receive, send)
 
 

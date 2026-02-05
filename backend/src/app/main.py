@@ -59,7 +59,7 @@ def create_app() -> FastAPI:
     # 2. Trusted hosts (Security)
     # app.add_middleware(
     #     TrustedHostMiddleware,
-    #     allowed_hosts=settings.CORS_ORIGINS,
+    #     allowed_hosts=settings.CORS_ORIGINS, #Note: Don't use settings.CORS_ORIGINS for TrustedHost - use actual hostnames, not full URLs.
     # )
 
     # 3. Compression (Performance optimization)

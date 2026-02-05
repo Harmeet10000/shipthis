@@ -25,10 +25,11 @@ export const authApi = {
    * Login with email and password
    */
   login: async (data: LoginRequest): Promise<AuthTokens> => {
+    console.log("Logging in with:", data);
     const response = await apiClient.post<AuthTokens>("/auth/login", data, {
       withCredentials: true,
     });
-    // console.log("login response",response.data);
+    console.log("login response",response.data);
     return response.data;
   },
 

@@ -130,7 +130,7 @@ uv sync
 uv sync --extra dev
 
 # Run the application
-uv run uvicorn src.app.main:app --reload --host 0.0.0.0 --port 5000
+uv run uvicorn src.app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## ⚡ Why Use uv?

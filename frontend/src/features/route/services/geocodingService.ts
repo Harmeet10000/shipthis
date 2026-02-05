@@ -35,7 +35,7 @@ export async function geocodePlace(query: string): Promise<PointIn> {
 
     // Extract first result
     const feature = data.features[0];
-
+    console.log("data", data)
     // Return formatted PointIn object
     return {
       name: feature.place_name,

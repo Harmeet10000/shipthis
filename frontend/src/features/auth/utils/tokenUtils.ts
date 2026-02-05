@@ -10,7 +10,7 @@ import type { TokenPayload, User } from "../types/auth.types";
 export function decodeToken(token: string): TokenPayload {
   try {
     return jwtDecode<TokenPayload>(token);
-  } catch (error) {
+  } catch  {
     throw new Error("Invalid token format");
   }
 }
@@ -30,7 +30,7 @@ export function extractUserFromToken(accessToken: string): Partial<User> {
       created_at: new Date(payload.iat * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     };
-  } catch (error) {
+  } catch  {
     throw new Error("Failed to extract user from token");
   }
 }
@@ -70,7 +70,7 @@ export function isTokenExpired(token: string): boolean {
   try {
     const ttl = calculateTTL(token);
     return ttl <= 0;
-  } catch (error) {
+  } catch {
     return true; // Treat invalid tokens as expired
   }
 }

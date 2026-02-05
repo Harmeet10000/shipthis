@@ -18,6 +18,16 @@ class RouteCalculateRequest(BaseModel):
     cargo_weight_kg: float = Field(gt=0)
     transport_mode: Literal["land", "sea", "air"]
 
+class CargoInfo(BaseModel):
+    origin: PointIn
+    destination: PointIn
+    cargo_weight_kg: float = Field(gt=0)
+    transport_mode: Literal["land", "sea", "air"]
+
+class RouteCalculateForMultiOrginRequest(BaseModel):
+    cargo_info: list[CargoInfo]
+
+
 
 class RouteGeometry(BaseModel):
     type: str

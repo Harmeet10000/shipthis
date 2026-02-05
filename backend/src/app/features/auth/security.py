@@ -40,3 +40,4 @@ def create_token(
         "exp": int((now + timedelta(minutes=expires_minutes)).timestamp()),
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+

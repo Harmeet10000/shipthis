@@ -23,8 +23,8 @@ class TokenManager {
       if (refreshTime > 0) {
         this.refreshTimeout = scheduleTokenRefresh(refreshTime, refreshFn);
       }
-    } catch (error) {
-      console.error("Failed to schedule token refresh:", error);
+    } catch {
+      // console.error("Failed to schedule token refresh:", error);
     }
   }
 
